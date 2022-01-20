@@ -1,0 +1,65 @@
+Event Start (s),Event Stop (s),Task Label
+31.3,34.6,Smile-Iso
+37.8,41.0,Smile-Iso
+44.7,47.6,Smile-Iso
+51.2,54.4,Smile-Iso
+81.6,84.6,Wrinkle-Iso
+88.6,91.8,Wrinkle-Iso
+93.5,96.4,Wrinkle-Iso
+99.6,102.4,Wrinkle-Iso
+130.0,133.2,Eye-Iso
+136.0,139.0,Eye-Iso
+142.1,145.2,Eye-Iso
+147.8,150.8,Eye-Iso
+182.0,184.7,Out-Iso
+189.4,192.6,Out-Iso
+196.2,199.3,Out-Iso
+202.4,205.6,Out-Iso
+239.8,242.8,In-Iso
+246.0,248.4,In-Iso
+250.8,253.8,In-Iso
+257.6,260.7,In-Iso
+292.8,322.8,Chewing
+335.3,365.2,Chewing
+379.1,410.0,Chewing
+423.2,453.6,Chewing
+495.0,505.4,Swallowing
+518.0,527.3,Swallowing
+536.2,545.0,Swallowing
+556.4,566.2,Swallowing
+600.0,605.2,Eye
+609.4,614.2,Eye
+619.2,623.4,Eye
+628.8,633.7,Eye
+678.8,685.2,Jaw
+691.6,698.0,Jaw
+700.7,706.8,Jaw
+711.4,717.2,Jaw
+762.6,765.6,Surprise
+769.5,772.6,Surprise
+776.5,779.6,Surprise
+782.6,785.6,Surprise
+816.8,819.8,Sad
+822.5,825.6,Sad
+827.4,830.4,Sad
+834.0,836.8,Sad
+873.8,876.7,Angry
+880.3,883.2,Angry
+886.0,889.0,Angry
+892.0,895.0,Angry
+930.4,975.4,Up Gaze
+985.4,1030.0,Up Gaze
+1040.5,1084.8,Up Gaze
+1094.8,1140.2,Up Gaze
+1175.8,1222.2,L Gaze-L
+1232.6,1275.8,L Gaze-L
+1286.0,1329.5,L Gaze-L
+1340.9,1385.4,L Gaze-L
+1427.4,1471.2,L Gaze-R
+1481.9,1526.6,L Gaze-R
+1535.8,1586.0,L Gaze-R
+1591.6,1636.6,L Gaze-R
+1671.2,1700.4,Talk
+1711.0,1740.9,Talk
+1751.2,1781.2,Talk
+1791.6,1822.4,Talk
