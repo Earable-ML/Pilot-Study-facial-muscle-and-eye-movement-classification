@@ -1,10 +1,13 @@
-awesom---
+---
 title: "EarableManuscriptFigures"
 output: html_document
 ---
+
+# Setup - set directory, load libraries, set figure locations
+
 ```{r setup, include=FALSE}
+
 setwd("~/Downloads/EarableManuscript_2021")
-# setwd("~/Documents/Projects/EarableManuscript_2021") 
 rm(list=ls())
 
 # loading needed libraries
@@ -13,17 +16,24 @@ install.packages("BiocManager")
 
 # remotes::install_github("ying14/yingtools2")
 # install.packages("ifultools", repos="http://R-Forge.R-project.org")
+# install.packages("pacman")
 
-library(dplyr);library(yingtools2)
-library(data.table);library(ifultools);library(stringr);library(ggplot2)
-library(Hmisc);library(tidyr);library(hues)
-
-library(tidyverse)
+pacman::p_load(
+  dplyr,yingtools2,data.table,ifultools,stringr,
+  ggplot2,Hmisc,tidyr,hues,tidyverse,
+  circlize,ComplexHeatmap,viridis,RColorBrewer,
+  umap,ggpubr,factoextra,phyloseq,
+  reshape2,EnvStats,lme4,
+  grid,sjstats
+  )
 
 mainDir <- "./"
 fig_folder <- paste(mainDir,"Figures/",sep="")
 dir.create(file.path(mainDir,fig_folder), showWarnings = TRUE,recursive = TRUE)
+
 ```
+
+# Write out and read in manuscript data
 
 ```{r}
 
@@ -66,6 +76,8 @@ rownames_metadata <- read.csv(file = "./rownames_Earable_2021.csv",header = T) %
 
 ```
 
+# Heatmap
+
 ```{r}
 ##################################################
 
@@ -73,7 +85,6 @@ sig_data_c <- raw_data
 tm <- match(rownames(samp),names(as.data.frame(sig_data_c)))
 sig_data_c<-sig_data_c[,tm]
 tmp_c<-samp
-library(circlize);library(ComplexHeatmap);library(viridis);library(RColorBrewer)
 
 mat<-as.matrix(as.data.frame(sig_data_c))  
 
@@ -99,11 +110,7 @@ match_tax_dt <- match_tax_dt[order(match_tax_dt$Category,match_tax_dt$Group),]
 match_tax_dt$Group %>% unique
 super_col <- c("Time"= "#9857ff","Amplitude" = "#8f7536", "Frequency" = "gray",
                "Bandpower" = "#9AAE73","Skew" = "#51AB9B", "Kurtosis" = "#4169E1",
-               "Variance" = "#FF69B4","other" = "#f69ea0","MAG" = "black",
-               "Phosphatidylethanolamine" = "orange","Phosphatidylinositol" = "purple",
-               "Neutral Complex Lipids SUM" = "green","Partially Characterized Molecules" = "gray",
-               "Amino Acid" = "#728cff", "Peptide" = "#3c53b9","Xenobiotics" = "hotpink",
-               "Carbohydrate" = "#ff9135","Cofactors and Vitamins" = "#889977") 
+               "Variance" = "#FF69B4","other" = "#f69ea0") 
 
 ha1_left = HeatmapAnnotation(Group = match_tax_dt$Group,
                              col = list(Group = super_col), 
@@ -111,6 +118,7 @@ ha1_left = HeatmapAnnotation(Group = match_tax_dt$Group,
                              which = "row")
 
 ##########################################
+
 person_col <- iwanthue(length(annotation_col$Person %>% unique))
 names(person_col) <- annotation_col$Person %>% unique
 
@@ -144,14 +152,14 @@ ht3 = Heatmap(as.matrix(mat2), name = "z score", column_title = NA,
               heatmap_legend_param = list(title = "z score", at = c(-3,-2,-1,0,1,2,3)))
 draw(ht3) 
 
-pdf(paste(fig_folder,"Heatmap_activity_split.June2021.pdf",sep = "/"),height = 8, width = 15,useDingbats = F)
-draw(ht3) #annotation_legend_side = "bottom"
-dev.off()
+# pdf(paste(fig_folder,"Heatmap_activity_split.June2021.pdf",sep = "/"),height = 8, width = 15,useDingbats = F)
+# draw(ht3) #annotation_legend_side = "bottom"
+# dev.off()
 ```
 
+# UMAP
 
 ```{r}
-
 data <-  processed_data 
 data$sample <- make.names(paste(data$Person,data$time,data$Task.Label,sep = "."),unique = T)
 metadata <- data %>% dplyr::select(sample,Person,time,Task.Label) 
@@ -159,7 +167,6 @@ raw_data_umap <- data %>% dplyr::select(-c(Person,time,Task.Label)) %>%
   column_to_rownames("sample")
 raw_data_scaled <- scale(raw_data_umap)
 
-library(umap)
 umap.defaults
 class(umap.defaults)
 umap.defaults$min_dist <- 0.5
@@ -170,7 +177,6 @@ umap_plot_df <- data.frame(umap_results$layout) %>%
   tibble::rownames_to_column("sample") %>%
   dplyr::inner_join(metadata, by = "sample")
 
-library(ggpubr)
 task_col <- iwanthue(length(metadata$Task.Label %>% unique))
 names(task_col) <- metadata$Task.Label %>% unique
 
@@ -181,7 +187,7 @@ person_col <- iwanthue(length(metadata$Person %>% unique))
 names(person_col) <- metadata$Person %>% unique
 
 
-pdf("./Figures/UMAP_Task.pdf",width = 7,height = 5,useDingbats = F)
+#pdf("./Figures/UMAP_Task.pdf",width = 7,height = 5,useDingbats = F)
 umap_plot_df %>% 
   mutate(task = metadata$Task.Label) %>%
   ggplot(aes(X1, X2, color = task)) + geom_point(size=2.5) +
@@ -193,7 +199,7 @@ umap_plot_df %>%
         axis.text.x = element_text(size=15),
         axis.text.y = element_text(size=15)) +
   xlab("UMAP1") + ylab("UMAP2")
-dev.off()
+# dev.off()
 
 #pdf("./Figures/UMAP_task.pdf",width = 9,height = 5)
 umap_plot_df %>% 
@@ -207,7 +213,7 @@ umap_plot_df %>%
         axis.text.x = element_text(size=15),
         axis.text.y = element_text(size=15)) +
   xlab("UMAP1") + ylab("UMAP2")
-dev.off()
+# dev.off()
 
 #pdf("./Figures/UMAP_task.pdf",width = 9,height = 5)
 umap_plot_df %>% 
@@ -221,14 +227,14 @@ umap_plot_df %>%
         axis.text.x = element_text(size=15),
         axis.text.y = element_text(size=15)) +
   xlab("UMAP1") + ylab("UMAP2")
-dev.off()
+# dev.off()
 
 ```
 
+# Feature correlation plot
 
 ```{r}
 ############## Feature correlation plot ######################
-library(factoextra)
 
 x_baseline <- raw_data
 # x_baseline <- x_baseline %>% column_to_rownames("otu")
@@ -265,16 +271,12 @@ split_rows <- clusters$cluster_number
 split_cols <- clusters$cluster_number
 
 #row annotation
-match_tax_dt <- data.frame(get.tax(phy)) %>% column_to_rownames(var = "otu")
+#match_tax_dt <- data.frame(get.tax(phy)) %>% column_to_rownames(var = "otu")
 match_tax_dt <- match_tax_dt[v1,] 
 
 super_col <- c("Time"= "#9857ff","Amplitude" = "#8f7536", "Frequency" = "gray",
                "Bandpower" = "#9AAE73","Skew" = "#51AB9B", "Kurtosis" = "#4169E1",
-               "Variance" = "#FF69B4","other" = "#f69ea0","MAG" = "black",
-               "Phosphatidylethanolamine" = "orange","Phosphatidylinositol" = "purple",
-               "Neutral Complex Lipids SUM" = "green","Partially Characterized Molecules" = "gray",
-               "Amino Acid" = "#728cff", "Peptide" = "#3c53b9","Xenobiotics" = "hotpink",
-               "Carbohydrate" = "#ff9135","Cofactors and Vitamins" = "#889977") 
+               "Variance" = "#FF69B4","other" = "#f69ea0") 
 
 ha1_left = HeatmapAnnotation(Group = match_tax_dt$Group,
                              col = list(Group = super_col), 
@@ -302,18 +304,15 @@ mat3 <- Heatmap(mat_genes2, name = "Spearman \nCorrelation",
                 show_row_dend = F)
 #pdf(paste(fig_folder,"Spearman_K6_Earable.Sep2020.pdf",sep = "/"),height = 5, width = 7,useDingbats = F)
 mat3
-dev.off()
+# dev.off()
 
 ```
 
 ##########################################################################################################################
 
-```{r Data Preparation}
+# Data Preparation
 
-library(reshape2)
-library(dplyr)
-library(EnvStats)
-library(lme4)
+```{r Data Preparation}
 
 ##Introduce Demographic Variables
 age <- c(28, 61, 33, 27, 28, 18, 27,27,26,46)
@@ -321,16 +320,8 @@ height <- c(5*12+11, 5*12+9, 5*12+1, 6*12, 5*12+9, 5*12+6, 5*12+1, 5*12+6, 5*12+
 weight <- c(200, 165, 114, 165, 170, 160, 143, 141, 140, 150)
 gender <- c("M", "F", "F", "M", "M", "F", "M", "M", "F", "F")
 
-mg0 <- read.table("./Earable.Dec2021.processed.data.all.tsv",sep = "\t",header = T) %>% data.frame()
-mg0_0 <- read.table("./Earable.June2021.processed.data.all.tsv",sep = "\t",header = T) %>% data.frame()
-
-mg0[,4:165] <- as.numeric(as.matrix(mg0[,4:165]))
-mg0_0[,4:165] <- as.numeric(as.matrix(mg0_0[,4:165]))
-
-mg0_0 <- reshape2::melt(mg0_0, id.vars = c("Person", "time", "Task.Label"), variable.name = "variables")
-
-neg_var <- as.vector(mg[mg$value <= 0,]$variables %>% unique())
-id <- unique(mg$Person)
+mg0 <- processed_data
+id <- unique(mg0$Person)
 
 mg0$age <- c(NA)
 mg0$gender <- c(NA)
@@ -351,13 +342,14 @@ var <- as.vector(unique(mg$variables))
 task <- sort(as.vector(unique(mg$Task.Label)))
 mg <- mg[order(mg$Person, mg$time, mg$Task.Label, mg$variables),]
 
-
 ##Add repeat measurement indexing column
 mg <- as.data.frame(mg %>%
             group_by(Person, time, Task.Label, variables) %>%
             mutate(index = seq_along(variables)))
 
 ```
+
+# Data Check and Cleaning
 
 ```{r Data Check and Cleaning}
 ##check identical values
@@ -368,7 +360,6 @@ new_var <- list(colnm[apply(mg0[mg0$Task.Label == task[i],4:165], 2, function(a)
 ident_var <- c(ident_var, new_var)
 }
 ident_var <- unique(unlist(ident_var))
-
 
 ##check normality
 norm_results <- matrix(NA, ncol = 16, nrow = 155)
@@ -385,16 +376,20 @@ for(i in 1:length(var1)){
 sum(norm_results > 0.1)
 
 ##scale values by column
-ncol(mg2)
+neg_var <- as.vector(mg[mg$value <= 0,]$variables %>% unique())
+length(neg_var)
+
 mg2 <- mg0[,which(!colnames(mg0) %in% c(neg_var, ident_var))]
 mg2[4:123] <- scale(log(mg2[4:123]), center = TRUE, scale = TRUE)
 ##mg2$index <- rep(c(1,2,3,4), nrow(mg2)/4)
 
+names(mg2)
 mg2 <- as.data.frame(mg2 %>%
             group_by(Person,time,Task.Label) %>%
-            mutate(index = seq_along(Task.Label)))
+            mutate(index = seq_along(Task.Label))) %>% 
+            dplyr::select(-c(age, gender, height, weight, BMI))
 
-View(mg2[,c("Person","Task.Label","time","index1")])
+# View(mg2[,c("Person","Task.Label","time","index")])
 mg_trsscl_l <- melt(mg2, id.vars = c("Person", "time", "Task.Label", "index"), variable.name = "variables")
 mg_trsscl_l$variables %>% unique() %>% length()
 dat <- list()
@@ -403,59 +398,63 @@ for (i in 1:length(task)){
 }
 ```
 
+# NOT RUN --- Variance Component Analysis with scaled values, embedded index, by variable and task
 
 ```{r Variance Component Analysis with scaled values, embedded index, by variable and task}
-var <- as.vector(unique(mg$variables))
-task <- sort(as.vector(unique(mg$Task.Label)))
 
+### not run ###
 
-for(t in 1:16){
-out_mat <- matrix(rep(NA, 6), ncol = 6, nrow = 1)
-for(v in var) {
-  mod <- lmer(value ~ 1 + (1|Person) + (1|time/index), data=dat[[t]][dat[[t]]$variables == v,])
-  re <- as.data.frame(VarCorr(mod))
-  vc_raw <- re$vcov
-  vc_perc <- round(re$vcov / sum(re$vcov)*100,2)
-  ci_mod <- confint(mod)^2
-  ci_l <- (as.data.frame(ci_mod)$`2.5 %`[1:4]) %>% round(2)
-  ci_h <- (as.data.frame(ci_mod)$`97.5 %`[1:4]) %>% round(2)
-  ci <- paste0("(",ci_l, ", ", ci_h,")")
-    
-  vc <- rbind(vc_raw, vc_perc, ci)
-  vc1 <- cbind(vc, matrix(c(rep(v,3), rep(task[t],3)), 3,2))
-  colnames(vc1) <-  c("Person", "Index:Time", "Time", "Unexplained", "Feature", "Task")
-  rownames(vc1) <- c("Variance Component", "% of Total", "Confidence Interval")
-  out_mat <- rbind(out_mat, vc1)
-}
-write.csv(out_mat, paste0(task[t], "_embedded_scledvarcomp.csv"))  
-}
-
-##merge 16 individual, by task variance component analysis outputs into one sheet
-Angry <- read.csv("./Embedded/Angry_embedded_scledvarcomp.csv")
-Chewing <- read.csv("./Embedded/Chewing_embedded_scledvarcomp.csv")
-Eye <- read.csv("./Embedded/Eye_embedded_scledvarcomp.csv")
-Eye_Iso <- read.csv("./Embedded/Eye-Iso_embedded_scledvarcomp.csv")
-In_Iso <- read.csv("./Embedded/In-Iso_embedded_scledvarcomp.csv")
-Jaw <- read.csv("./Embedded/Jaw_embedded_scledvarcomp.csv")
-L_Gaze_L <- read.csv("./Embedded/L Gaze-L_embedded_scledvarcomp.csv")
-L_Gaze_R <- read.csv("./Embedded/L Gaze-R_embedded_scledvarcomp.csv")
-Out_Iso <- read.csv("./Embedded/Out-Iso_embedded_scledvarcomp.csv")
-Sad <- read.csv("./Embedded/Sad_embedded_scledvarcomp.csv")
-Smile_Iso <- read.csv("./Embedded/Smile-Iso_embedded_scledvarcomp.csv")
-Surprise <- read.csv("./Embedded/Surprise_embedded_scledvarcomp.csv")
-Swallowing <- read.csv("./Embedded/Swallowing_embedded_scledvarcomp.csv")
-Talk <- read.csv("./Embedded/Talk_embedded_scledvarcomp.csv")
-Up_Gaze <- read.csv("./Embedded/Up Gaze_embedded_scledvarcomp.csv")
-Wrinkle_Iso <- read.csv("./Embedded/Wrinkle-Iso_embedded_scledvarcomp.csv")
-
-scledtrs_value_varcomp <- rbind(Angry,Chewing,Eye,Eye_Iso,In_Iso,Jaw,L_Gaze_L,L_Gaze_R,Out_Iso,Sad,Smile_Iso,Surprise,Swallowing,Talk,Up_Gaze,Wrinkle_Iso)
-scledtrs_value_varcomp <- scledtrs_value_varcomp[!is.na(scledtrs_value_varcomp$Person),]
-
-write.csv(scledtrs_value_varcomp,
-          "./Embedded/scledtrs_value_varcomp.csv",
-          row.names = FALSE)
+# var <- as.vector(unique(mg$variables))
+# task <- sort(as.vector(unique(mg$Task.Label)))
+# 
+# for(t in 1:16){
+# out_mat <- matrix(rep(NA, 6), ncol = 6, nrow = 1)
+# for(v in var) {
+#   mod <- lmer(value ~ 1 + (1|Person) + (1|time/index), data=dat[[t]][dat[[t]]$variables == v,])
+#   re <- as.data.frame(VarCorr(mod))
+#   vc_raw <- re$vcov
+#   vc_perc <- round(re$vcov / sum(re$vcov)*100,2)
+#   ci_mod <- confint(mod)^2
+#   ci_l <- (as.data.frame(ci_mod)$`2.5 %`[1:4]) %>% round(2)
+#   ci_h <- (as.data.frame(ci_mod)$`97.5 %`[1:4]) %>% round(2)
+#   ci <- paste0("(",ci_l, ", ", ci_h,")")
+#     
+#   vc <- rbind(vc_raw, vc_perc, ci)
+#   vc1 <- cbind(vc, matrix(c(rep(v,3), rep(task[t],3)), 3,2))
+#   colnames(vc1) <-  c("Person", "Index:Time", "Time", "Unexplained", "Feature", "Task")
+#   rownames(vc1) <- c("Variance Component", "% of Total", "Confidence Interval")
+#   out_mat <- rbind(out_mat, vc1)
+# }
+# write.csv(out_mat, paste0(task[t], "_embedded_scledvarcomp.csv"))  
+# }
+# 
+# ##merge 16 individual, by task variance component analysis outputs into one sheet
+# Angry <- read.csv("./Embedded/Angry_embedded_scledvarcomp.csv")
+# Chewing <- read.csv("./Embedded/Chewing_embedded_scledvarcomp.csv")
+# Eye <- read.csv("./Embedded/Eye_embedded_scledvarcomp.csv")
+# Eye_Iso <- read.csv("./Embedded/Eye-Iso_embedded_scledvarcomp.csv")
+# In_Iso <- read.csv("./Embedded/In-Iso_embedded_scledvarcomp.csv")
+# Jaw <- read.csv("./Embedded/Jaw_embedded_scledvarcomp.csv")
+# L_Gaze_L <- read.csv("./Embedded/L Gaze-L_embedded_scledvarcomp.csv")
+# L_Gaze_R <- read.csv("./Embedded/L Gaze-R_embedded_scledvarcomp.csv")
+# Out_Iso <- read.csv("./Embedded/Out-Iso_embedded_scledvarcomp.csv")
+# Sad <- read.csv("./Embedded/Sad_embedded_scledvarcomp.csv")
+# Smile_Iso <- read.csv("./Embedded/Smile-Iso_embedded_scledvarcomp.csv")
+# Surprise <- read.csv("./Embedded/Surprise_embedded_scledvarcomp.csv")
+# Swallowing <- read.csv("./Embedded/Swallowing_embedded_scledvarcomp.csv")
+# Talk <- read.csv("./Embedded/Talk_embedded_scledvarcomp.csv")
+# Up_Gaze <- read.csv("./Embedded/Up Gaze_embedded_scledvarcomp.csv")
+# Wrinkle_Iso <- read.csv("./Embedded/Wrinkle-Iso_embedded_scledvarcomp.csv")
+# 
+# scledtrs_value_varcomp <- rbind(Angry,Chewing,Eye,Eye_Iso,In_Iso,Jaw,L_Gaze_L,L_Gaze_R,Out_Iso,Sad,Smile_Iso,Surprise,Swallowing,Talk,Up_Gaze,Wrinkle_Iso)
+# scledtrs_value_varcomp <- scledtrs_value_varcomp[!is.na(scledtrs_value_varcomp$Person),]
+# 
+# write.csv(scledtrs_value_varcomp,
+#           "./Embedded/scledtrs_value_varcomp.csv",
+#           row.names = FALSE)
 ```
 
+# varcomp with scaled embedded by task only
 
 ```{r varcomp with scaled embedded by task only}
 out_mat <- matrix(rep(NA, 6), ncol = 6, nrow = 1)
@@ -480,9 +479,11 @@ for(t in 1:16) {
 
 ```
 
+# Compute ICC and CV by task and variable and save in matrix
 
 ```{r Compute ICC and CV by task and variable and save in matrix}
 ##ICC and CV with Linear Mixed Effect model
+task <- sort(as.vector(unique(mg$Task.Label)))
 dat <- list()
 for (i in 1:length(task)){
   dat[[i]] <- mg[which(mg$Task.Label == task[i]),]
@@ -512,7 +513,6 @@ options(warn = -1)
 
 
 #compute CV values by task and by variable
-library(EnvStats)
 cv.s <- matrix(ncol = 162, nrow = 16, NA)
 for (i in 1:16) {
   for (j in 1:162) {
@@ -525,8 +525,6 @@ for (i in 1:16) {
 colnames(cv.s) <- var
 rownames(cv.s) <- task
 write.csv(cv.s, "cv_bytask.csv", row.names = T)
-
-library(sjstats)
 
 mg1 <- mg[!mg$variables %in% ident_var,]
 var <- as.vector(unique(mg1$variables))
@@ -592,10 +590,10 @@ write.csv(ICC.subj, "ICC.subj.csv", row.names = TRUE)
 
 ```
 
+# Draw ICC and CV Heatmap
 
 ```{r Draw ICC and CV Heatmap}
 rm <- setdiff(var, colnames(ICC.subj))
-BiocManager::install("ComplexHeatmap")
 
 ##Preparte ICC heatmap
 impute.mean <-
@@ -615,7 +613,6 @@ ICC.subj.abs <- abs(ICC.subj)
 # ICC.subj.abs[ICC.subj.abs >=1] <- 1
 sum(apply(ICC.subj, 2, function(.) sum(is.infinite(.))))
 
-library(grid)
 resultMat.subj <- resultMat.subj[,!colnames(resultMat.subj) %in% c("Event.Duration..s.","Perceptible.Onset.Time..s.")]
 split_rows <-  c(rep("EMG", 56), rep("EEG", 48), rep("EOG", 50))
 pdf("Supplementary Figure 2_ICC.pdf",
@@ -681,6 +678,7 @@ dev.off()
 # dev.off()
 ```
 
+# Summary Stats for each Variable
 
 ```{r Summary Stats for each Variable}
 summary_mg_variables <- summary(mg0[,-c(1,2,3)])
